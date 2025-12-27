@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'DM Mono', monospace;
+            background: linear-gradient(135deg, #f8e1e9, #e8f4f8);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+        .calculator-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        .history-section {
+            width: 250px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .history-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        #history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .history-item {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid #a2d2ff;
+            word-break: break-all;
+        }
+        #clear-history {
+            width: 100%;
+            background: #ff9999;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(6, 70px);
+            grid-gap: 10px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        textarea {
+            grid-column: span 4;
+            font-family: inherit;
+            font-size: 28px;
+            text-align: right;
+            background: linear-gradient(145deg, #fff, #f0f0f0);
+            padding: 25px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            resize: none;
+            outline: none;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        textarea.cleared {
+            background: #e8f5e8 !important;
+            color: #2e7d32;
+            font-size: 20px;
+        }
+        button {
+            font-family: inherit;
+            font-size: 22px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        /* Baby pink numbers */
+        .number { background: #ffc1cc !important; color: #333; }
+        .number:hover { background: #ffb3c6 !important; }
+        /* Baby blue operators */
+        .operator { background: #a2d2ff !important; color: #1a4d6a; }
+        .operator:hover { background: #8bc8f7 !important; }
+        /* Baby green AC */
+        #clear { background: #b5ead7 !important; color: #1a4d2e; }
+        #clear:hover { background: #9ed8b8 !important; }
+        /* Baby red DEL */
+        #backspace { background: #ffafbd !important; color: #4a1a1a; }
+        #backspace:hover { background: #ff8fa3 !important; }
+        .equals { background: linear-gradient(145deg, #a2d2ff, #ffc1cc) !important; }
+        
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; }
+            .history-section { order: 2; width: 100%; }
+            .calculator-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="calculator-section">
+            <div class="calculator-grid">
+                <textarea id="inputtext" placeholder="0" readonly></textarea>
+                <button id="clear" class="number">AC</button>
+                <button id="backspace" class="number">DEL</button>
+                <button class="operator" onclick="operation('/')">/</button>
+                <button class="operator" onclick="operation('*')">×</button>
+                <button class="number" onclick="operation('7')">7</button>
+                <button class="number" onclick="operation('8')">8</button>
+                <button class="number" onclick="operation('9')">9</button>
+                <button class="operator" onclick="operation('-')">-</button>
+                <button class="number" onclick="operation('4')">4</button>
+                <button class="number" onclick="operation('5')">5</button>
+                <button class="number" onclick="operation('6')">6</button>
+                <button class="operator" onclick="operation('+')">+</button>
+                <button class="number" onclick="operation('1')">1</button>
+                <button class="number" onclick="operation('2')">2</button>
+                <button class="number" onclick="operation('3')">3</button>
+                <button class="equals" onclick="operation('=')">=</button>
+                <button class="number" onclick="operation('0')">0</button>
+                <button class="number" onclick="operation('.')">.</button>
+            </div>
+        </div>
+        <div class="history-section">
+            <div class="history-title">📝 History</div>
+            <div id="history-list"></div>
+            <button id="clear-history">Clear History</button>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('inputtext');
+        const historyList = document.getElementById('history-list');
+        let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+        
+        function saveToHistory(expression, result) {
+            const entry = `${expression} = ${result}`;
+            history.unshift(entry);
+            if (history.length > 20) history = history.slice(0, 20);
+            localStorage.setItem('calcHistory', JSON.stringify(history));
+            updateHistoryDisplay();
+        }
+        
+        function updateHistoryDisplay() {
+            historyList.innerHTML = history.map(item => 
+                `<div class="history-item">${item}</div>`
+            ).join('');
+        }
+        
+        function calculate(expression) {
+            try {
+                const result = new Function('return ' + expression.replace('×', '*'))();
+                return isFinite(result) ? Number(result.toFixed(8)) : 'Error';
+            } catch {
+                return 'Error';
+            }
+        }
+        
+        function operation(buttonValue) {
+            const currentValue = input.value;
+            
+            if (buttonValue === 'AC') {
+                input.value = '';  // ✅ CLEARS THE ENTIRE SCREEN
+                // Visual feedback
+                input.classList.add('cleared');
+                input.placeholder = 'Cleared!';
+                setTimeout(() => {
+                    input.classList.remove('cleared');
+                    input.placeholder = '0';
+                }, 800);
+            } else if (buttonValue === 'DEL') {
+                input.value = currentValue.slice(0, -1);
+            } else if (buttonValue === '=') {
+                if (currentValue) {
+                    const result = calculate(currentValue);
+                    input.value = result;
+                    if (result !== 'Error') {
+                        saveToHistory(currentValue, result);
+                    }
+                }
+            } else {
+                input.value += buttonValue;
+            }
+        }
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9' || e.key === '.') operation(e.key);
+            else if (e.key === '+' || e.key === '-') operation(e.key);
+            else if (e.key === '*') operation('×');
+            else if (e.key === '/') operation('/');
+            else if (e.key === 'Enter' || e.key === '=') operation('=');
+            else if (e.key === 'Backspace') operation('DEL');
+            else if (e.key.toLowerCase() === 'c') operation('AC');
+        });
+        
+        // Clear history button
+        document.getElementById('clear-history').addEventListener('click', () => {
+            history = [];
+            localStorage.removeItem('calcHistory');
+            updateHistoryDisplay();
+        });
+        
+        // Load history on page load
+        updateHistoryDisplay();
+    </script>
+</body>
+</html>
